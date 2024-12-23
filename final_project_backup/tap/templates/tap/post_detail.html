@@ -1,0 +1,76 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+  <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'tap:index' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'tap:post_list' %}">농산물 목록</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
+    </ol>
+  </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero section">
+
+      <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+        <img src="{{ post.head_image.url }}" class="img-fluid animated" alt="이미지가 없습니다.">
+        <h2><span>{{ post.title }}</span></h2>
+        <p>{{ post.title }}에 대해 확인해보세요 !</p>
+      </div>
+
+    </section><!-- /Hero Section -->
+
+    <!-- Featured Services Section -->
+    <section id="featured-services" class="featured-services section">
+
+      <div class="container">
+
+        <div class="row gy-4">
+
+          <div class="col-xl-3 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="100">
+            <div class="service-item position-relative">
+              <div class="icon"><i class="bi bi-postcard"></i></div>
+              <h4><a href="{% url 'tap:farm_detail' pk=farm.pk %}" class="stretched-link">농장 정보</a></h4>
+              <p>농장의 정보를 확인하세요 !</p>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-xl-3 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="200">
+            <div class="service-item position-relative">
+              <div class="icon"><i class="bi bi-activity"></i></div>
+              <h4><a href="{% url 'tap:saved_post_chart' post.id %}" class="stretched-link">농장 데이터</a></h4>
+              <p>농산물이 자란 환경은?</p>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-xl-3 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="200">
+            <div class="service-item position-relative">
+              <div class="icon" style="padding-bottom: 8px;"><i class="fa-solid fa-leaf"></i></div>
+              <h4>
+                <a href="{% url 'tap:smartfarm_intro' %}" class="stretched-link">스마트팜이란?</a>
+              </h4>
+              <p>스마트팜에 대해 알아보세요 !</p>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-xl-3 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="400">
+            <div class="service-item position-relative">
+              <div class="icon"><i class="bi bi-receipt"></i></div>
+              <h4>
+                  <a href="{% url 'tap:recipe_detail' slug=post.slug pk=post.pk %}" class="stretched-link">
+                      손질 및 레시피
+                  </a>
+              </h4>
+              <p>{{ post.title }}에 대한 레시피를 알아보세요!</p>
+            </div>
+          </div><!-- End Service Item -->
+
+        </div>
+
+      </div>
+
+    </section><!-- /Featured Services Section -->
+
+{% endblock %}

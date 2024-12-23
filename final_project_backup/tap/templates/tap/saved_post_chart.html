@@ -1,0 +1,299 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'tap:index' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'tap:post_list' %}">농산물 목록</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tap:post_detail' post.slug post.pk %}">{{ post.title }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">농장 데이터</li>
+    </ol>
+  </nav>
+
+<section id="saved-chart" class="section">
+    <div class="container text-center">
+        <!-- Section Title -->
+        <div class="section-title">
+            <h1>{{ post.title }}의 온습도 그래프</h1>
+        </div>
+
+        <!-- Post Information -->
+        <div class="post-info" style="margin-bottom: 20px; text-align: center;">
+            <p style="font-size: 18px; margin: 0; display: inline-block; text-align: center;">
+                <strong>지역:</strong> {{ post.region }} &nbsp;&nbsp;&nbsp;&nbsp;
+                <strong>농장주:</strong> {{ post.farm_owner }}
+            </p>
+        </div>
+
+        <div class="date-range" style="text-align: center; margin: 20px 0;">
+            <label for="start-date">시작 날짜: </label>
+            <input type="date" id="start-date">
+            <label for="end-date" style="margin-left: 10px;">종료 날짜: </label>
+            <input type="date" id="end-date">
+            <button id="filterButton" class="btn btn-primary" style="margin-left: 10px;">필터</button>
+        </div>
+
+
+        <!-- Chart Container -->
+        <div id="chart-container" style="display: flex; justify-content: center; align-items: center; width: 100%; overflow: hidden; margin: auto; background: #f7f9fc; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);">
+            <div id="temperature-humidity-chart" style="flex: 0 0 90%; max-width: 1200px; height: 55vh;"></div>
+        </div>
+
+        <!-- CSV Download Button -->
+        <div style="text-align: center; margin-top: 40px;"> <!-- 여백 추가 -->
+            <button id="downloadCsvButton" class="btn btn-primary">CSV 다운로드</button>
+        </div>
+
+        <!-- Average Temperature and Humidity -->
+        <div class="averages" style="margin-top: 40px; text-align: center; color: #0ea2bd;">
+            <p style="font-size: 24px; font-weight: bold;">
+                평균 온도: <span id="averageTemperature"></span>°C &nbsp;&nbsp;|&nbsp;&nbsp;
+                평균 습도: <span id="averageHumidity"></span>%
+            </p>
+        </div>
+    </div>
+</section>
+
+<script src="https://unpkg.com/uplot@1.6.17/dist/uPlot.iife.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/uplot@1.6.17/dist/uPlot.min.css">
+
+<script>
+    // 평균값 계산 함수
+    const calculateAverage = (data) => {
+        if (data.length === 0) return 0;
+        const sum = data.reduce((acc, val) => acc + val, 0);
+        return (sum / data.length).toFixed(2); // 소수점 2자리까지 표시
+    };
+
+    const updateAverages = (filteredTemperatures, filteredHumidities) => {
+        const avgTemperature = calculateAverage(filteredTemperatures);
+        const avgHumidity = calculateAverage(filteredHumidities);
+
+        // HTML 요소에 평균값 반영
+        document.getElementById("averageTemperature").textContent = avgTemperature;
+        document.getElementById("averageHumidity").textContent = avgHumidity;
+    };
+
+    // 날짜 필터링 이벤트
+    document.getElementById("filterButton").addEventListener("click", () => {
+        const startDate = new Date(document.getElementById("start-date").value).getTime();
+        const endDate = new Date(document.getElementById("end-date").value).getTime();
+
+        if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+            alert("올바른 날짜 범위를 선택해주세요.");
+            return;
+        }
+
+        // 필터링된 데이터
+        const filteredTimestamps = [];
+        const filteredTemperatures = [];
+        const filteredHumidities = [];
+
+        timestamps.forEach((ts, index) => {
+            if (ts >= startDate && ts <= endDate) {
+                filteredTimestamps.push(ts);
+                filteredTemperatures.push(temperatures[index]);
+                filteredHumidities.push(humidities[index]);
+            }
+        });
+
+        // 필터링된 데이터로 그래프 다시 생성
+        createPlot(filteredTimestamps, filteredTemperatures, filteredHumidities);
+
+        // 평균값 업데이트
+        updateAverages(filteredTemperatures, filteredHumidities);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // 모든 데이터를 렌더링
+        createPlot(timestamps, temperatures, humidities);
+
+        // 초기 평균값 업데이트
+        updateAverages(temperatures, humidities);
+    });
+
+    // CSV 생성 함수
+    const generateCsvContent = (timestamps, temperatures, humidities) => {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Timestamp,Temperature (°C),Humidity (%)\n"; // 헤더 추가
+
+        timestamps.forEach((timestamp, index) => {
+            const date = new Date(timestamp).toISOString(); // ISO 형식으로 변환
+            const temperature = temperatures[index];
+            const humidity = humidities[index];
+            csvContent += `${date},${temperature},${humidity}\n`; // 데이터 행 추가
+        });
+
+        return csvContent;
+    };
+
+    // CSV 다운로드 버튼 이벤트 추가
+    document.getElementById("downloadCsvButton").addEventListener("click", () => {
+        if (timestamps.length === 0) {
+            alert("다운로드할 데이터가 없습니다.");
+            return;
+        }
+
+        // CSV 콘텐츠 생성
+        const csvContent = generateCsvContent(timestamps, temperatures, humidities);
+
+        // 다운로드 링크 생성
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "{{ post.title }}_temperature_humidity_data.csv");
+        document.body.appendChild(link); // 링크 추가
+        link.click(); // 링크 클릭으로 다운로드 실행
+        document.body.removeChild(link); // 링크 제거
+    });
+
+
+    // 데이터 초기화
+    const originalData = {{ chart_data | safe }};
+    const timestamps = originalData.timestamp.map(ts => {
+        const date = new Date(ts);
+        if (isNaN(date.getTime())) {
+            console.warn(`Invalid timestamp: ${ts}`);
+            return null;
+        }
+        return date.getTime();
+    }).filter(ts => ts !== null);
+
+    const temperatures = originalData.temperature; // 온도 데이터 초기화
+    const humidities = originalData.humidity;
+
+    // 유니크 날짜 추출
+    const uniqueDates = [...new Set(timestamps.map(ts => new Date(ts).toISOString().split("T")[0]))].sort();
+
+    // HTML Input 활성 날짜 설정
+    const setAllowedDates = (inputId, dates) => {
+        const input = document.getElementById(inputId);
+
+        // 비활성화된 날짜를 처리하기 위해 HTML5 "min" 및 "max" 속성을 사용
+        input.setAttribute("min", dates[0]);
+        input.setAttribute("max", dates[dates.length - 1]);
+
+        // 사용자 입력에 대한 유효성 검사
+        input.addEventListener("input", () => {
+            if (!dates.includes(input.value)) {
+                input.setCustomValidity("선택할 수 없는 날짜입니다.");
+            } else {
+                input.setCustomValidity("");
+            }
+        });
+    };
+
+    // 시작 날짜와 종료 날짜에 유효한 날짜만 설정
+    setAllowedDates("start-date", uniqueDates);
+    setAllowedDates("end-date", uniqueDates);
+
+    // μPlot 초기화 함수
+    const createPlot = (filteredTimestamps, filteredTemperatures, filteredHumidities) => {
+    const chartWidth = Math.min(window.innerWidth * 0.9, 1200);
+    const chartHeight = window.innerHeight * 0.5;
+
+    const options = {
+        width: chartWidth,
+        height: chartHeight,
+        title: "Temperature and Humidity",
+        scales: {
+            x: {time: true},
+            y: {
+                range: [Math.min(...filteredTemperatures) - 5, Math.max(...filteredTemperatures) + 5],
+            },
+            y2: {
+                range: [Math.min(...filteredHumidities) - 5, Math.max(...filteredHumidities) + 5],
+            },
+        },
+        series: [
+            {
+                label: "Time",
+                value: (u, ts) => new Date(ts).toLocaleDateString(),
+            },
+            {
+                label: "Temperature (°C)",
+                stroke: "#ff6f61",
+                fill: "rgba(255, 111, 97, 0.2)",
+                width: 2,
+                points: { show: false },
+            },
+            {
+                label: "Humidity (%)",
+                stroke: "#4a90e2",
+                fill: "rgba(74, 144, 226, 0.2)",
+                width: 2,
+                points: { show: false },
+                scale: "y2",
+            },
+        ],
+        axes: [
+            {
+                grid: { show: false },
+                values: (u, vals) => vals.map(v => new Date(v).toLocaleDateString()),
+                size: 40,  // 라벨을 위한 여백 확보
+                gap: 15,   // 축과 라벨 사이 간격
+            },
+            {
+                grid: { show: false },
+                stroke: "#ff6f61",
+                values: (u, vals) => vals.map(v => v.toFixed(2)),
+                fill: "#333",
+            },
+            {
+                side: 1,
+                scale: "y2",
+                stroke: "#4a90e2",
+                grid: { show: false },
+                values: (u, vals) => vals.map(v => v.toFixed(1)),
+                fill: "#4a90e2",
+            },
+        ],
+    };
+
+    document.getElementById("temperature-humidity-chart").innerHTML = "";
+    new uPlot(
+        options,
+        [filteredTimestamps, filteredTemperatures, filteredHumidities],
+        document.getElementById("temperature-humidity-chart")
+    );
+};
+
+    // 초기 그래프 생성
+    document.addEventListener("DOMContentLoaded", () => {
+        // 모든 데이터를 렌더링
+        createPlot(timestamps, temperatures, humidities);
+    });
+
+    // 날짜 필터링 이벤트
+    document.getElementById("filterButton").addEventListener("click", () => {
+        const startDate = new Date(document.getElementById("start-date").value).getTime();
+        const endDate = new Date(document.getElementById("end-date").value).getTime();
+
+        if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+            alert("올바른 날짜 범위를 선택해주세요.");
+            return;
+        }
+
+        // 필터링된 데이터
+        const filteredTimestamps = [];
+        const filteredTemperatures = [];
+        const filteredHumidities = [];
+
+        timestamps.forEach((ts, index) => {
+            if (ts >= startDate && ts <= endDate) {
+                filteredTimestamps.push(ts);
+                filteredTemperatures.push(temperatures[index]);
+                filteredHumidities.push(humidities[index]);
+            }
+        });
+
+        // 필터링된 데이터로 그래프 다시 생성
+        createPlot(filteredTimestamps, filteredTemperatures, filteredHumidities);
+    });
+
+
+</script>
+{% endblock %}
+

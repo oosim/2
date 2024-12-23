@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 데이터 그래프</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container {
+            width: 80%;
+            margin: auto;
+        }
+
+        #control-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 🟢 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            width: 50%;
+            margin: auto;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .close {
+            float: right;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">실시간 온도 및 습도 그래프</h1>
+    <div id="chart-container">
+        <canvas id="realTimeChart"></canvas>
+    </div>
+
+    <div id="control-buttons">
+        <button id="end-season-btn">작기 종료</button>
+    </div>
+
+    <!-- 🟢 모달 창 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-modal">&times;</span>
+            <h2>작성 정보 입력</h2>
+            <div class="form-group">
+                <label for="category">카테고리</label>
+                <select id="category">
+                    <option value="일반">일반</option>
+                    <option value="정보">정보</option>
+                    <option value="경고">경고</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" placeholder="제목을 입력하세요">
+            </div>
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" placeholder="내용을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="timestamp">작성 시간</label>
+                <input type="text" id="timestamp" readonly>
+            </div>
+            <button id="submit-post-btn">업로드</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 🟢 그래프 초기화
+            const ctx = document.getElementById('realTimeChart').getContext('2d');
+            const realTimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '온도 (°C)',
+                            data: [],
+                            borderColor: 'red',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: '습도 (%)',
+                            data: [],
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return `시간: ${context[0].label}`;
+                                },
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label || '';
+                                    const value = context.raw !== null ? context.raw.toFixed(2) : 'N/A';
+                                    return `${datasetLabel}: ${value}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: '시간' },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: '값' }
+                        }
+                    }
+                }
+            });
+
+            // 🟢 실시간 데이터 업데이트
+            async function fetchRealTimeData() {
+                try {
+                    const response = await fetch('/blog/chart_data/');
+                    const data = await response.json();
+
+                    realTimeChart.data.labels = data.map(entry => entry.timestamp);
+                    realTimeChart.data.datasets[0].data = data.map(entry => entry.temperature);
+                    realTimeChart.data.datasets[1].data = data.map(entry => entry.humidity);
+
+                    realTimeChart.update();
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            }
+
+            setInterval(fetchRealTimeData, 5000);
+            fetchRealTimeData();
+
+            // 🟢 모달 동작
+            const modal = document.getElementById('modal');
+            const closeModal = document.getElementById('close-modal');
+            const endSeasonBtn = document.getElementById('end-season-btn');
+            const submitPostBtn = document.getElementById('submit-post-btn');
+
+            endSeasonBtn.addEventListener('click', () => {
+                if (confirm('작성을 진행하시겠습니까?')) {
+                    modal.style.display = 'block';
+                    document.getElementById('timestamp').value = new Date().toLocaleString();
+                } else {
+                    endSeason();
+                }
+            });
+
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            async function endSeason() {
+                try {
+                    const response = await fetch('/blog/end_season/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCSRFToken() }
+                    });
+
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        alert('데이터가 성공적으로 CSV 파일로 저장되었습니다.');
+                    } else {
+                        alert(`오류 발생: ${result.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error ending season:', error);
+                    alert('CSV 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+                }
+            }
+
+            submitPostBtn.addEventListener('click', async () => {
+                const category = document.getElementById('category').value;
+                const title = document.getElementById('title').value;
+                const content = document.getElementById('content').value;
+
+                await fetch('/blog/end_season/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, title, content })
+                });
+
+                modal.style.display = 'none';
+                alert('업로드 완료!');
+            });
+
+            function getCSRFToken() {
+                return document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='))?.split('=')[1];
+            }
+        });
+    </script>
+</body>
+</html>

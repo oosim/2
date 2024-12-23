@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>저장된 CSV 그래프</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container {
+            width: 80%;
+            margin: auto;
+        }
+
+        #control-panel {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>저장된 CSV 그래프</h1>
+    <div id="control-panel">
+        <label for="csvFileSelect">CSV 파일 선택:</label>
+        <select id="csvFileSelect">
+            {% for file in csv_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="loadSelectedCSV()">그래프 불러오기</button>
+    </div>
+
+    <div id="chart-container">
+        <canvas id="csvChart"></canvas>
+    </div>
+
+    <script>
+        // 🟢 그래프 초기화
+        const ctx = document.getElementById('csvChart').getContext('2d');
+        const csvChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: '온도 (°C)',
+                        data: [],
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                    },
+                    {
+                        label: '습도 (%)',
+                        data: [],
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: '시간' }
+                    },
+                    y: {
+                        title: { display: true, text: '값' }
+                    }
+                }
+            }
+        });
+
+        // 🟢 선택된 CSV 파일 데이터 불러오기
+        // 🟢 선택된 CSV 파일 데이터 불러오기
+        async function loadSelectedPostCSV() {
+            const selectedPostId = document.getElementById('postSelect').value;
+
+            if (!selectedPostId) {
+                alert('Post를 선택해주세요!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/blog/post_csv_chart_data/?post_id=${selectedPostId}`);
+                const data = await response.json();
+
+                if (data.status === "error") {
+                    alert(`오류: ${data.message}`);
+                    return;
+                }
+
+                const labels = data.map(entry => entry.timestamp);
+                const temperatures = data.map(entry => entry.temperature);
+                const humidities = data.map(entry => entry.humidity);
+
+                postChart.data.labels = labels;
+                postChart.data.datasets[0].data = temperatures;
+                postChart.data.datasets[1].data = humidities;
+
+                postChart.update();
+
+                alert('그래프가 성공적으로 불러와졌습니다.');
+            } catch (error) {
+                console.error('Error loading Post CSV:', error);
+                alert('Post 데이터를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+    </script>
+</body>
+</html>

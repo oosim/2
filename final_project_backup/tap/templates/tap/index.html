@@ -1,0 +1,66 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section id="hero" class="hero section">
+  <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+    <img src="{% static 'tap/assets/image/greenhouse.png' %}" class="img-fluid animated" alt="온실 이미지">
+    <h1>Welcome to <span>TAP</span></h1>
+    <p>농산물의 투명한 이력을 확인하세요.</p>
+    <div class="d-flex">
+      <a href="{% url 'tap:post_list' %}" class="btn-get-started scrollto">농산물 프로필 보기</a>
+    </div>
+  </div>
+</section>
+
+<!-- 농산물 섹션 -->
+<section id="crops" class="crops section">
+  <div class="container">
+    <div class="section-title">
+      <a href="{% url 'tap:post_list' %}"><h3>최신 농산물 목록</h3></a>
+      <h5>갓 수확한 농산물을 확인하세요.</h5>
+    </div>
+    <div class="row">
+      {% for post in new_posts %}
+      <div class="col-lg-4 col-md-6">
+        <div class="card crop-card">
+          <a href="{% url 'tap:post_detail' post.slug post.pk %}">
+            <img src="{{ post.head_image.url }}" class="card-img-top" alt="{{ post.title }}">
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.farm_owner }}</p>
+            <p class="card-text">등록일: {{ post.created_at|date:"Y-m-d" }}</p>
+            <a href="{% url 'tap:post_detail' post.slug post.pk %}" class="btn btn-primary">자세히 보기</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 카테고리 섹션 -->
+<!--<section id="categories" class="categories section light-background">-->
+<!--  <div class="container">-->
+<!--    <div class="section-title">-->
+<!--      <h2>카테고리</h2>-->
+<!--      <p>대표적인 농산물 카테고리를 살펴보세요.</p>-->
+<!--    </div>-->
+<!--    <div class="row">-->
+<!--      {% for category in categories %}-->
+<!--      <div class="col-lg-3 col-md-4 col-sm-6">-->
+<!--        <div class="category-box text-center">-->
+<!--          <i class="bi bi-tag"></i>-->
+<!--          <h4>{{ category.name }}</h4>-->
+<!--&lt;!&ndash;          <a href="% url 'tap:category_detail' category.slug %}" class="btn btn-secondary btn-sm">보기</a>&ndash;&gt;-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      {% endfor %}-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</section>-->
+
+{% endblock %}

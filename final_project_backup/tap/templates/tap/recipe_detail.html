@@ -1,0 +1,49 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+    <!-- Header Section -->
+    <header style="background-color: #f9fafc; padding: 40px 0; border-bottom: 1px solid #ddd;">
+        <h1 class="text-center mt-4">{{ post.title }} 손질 및 레시피</h1>
+    </header>
+
+    <!-- Recipe Section -->
+    <section id="recipe" class="section" style="background-color: #f9fafc; padding: 40px 0;">
+        <div class="container text-center" data-aos="fade-up">
+            <h2>{{ post.title }}에 대한 레시피를 알아보세요!</h2>
+            <p>
+                {{ post.title }}를 손질하고 맛있게 요리하는 방법을 안내해드립니다.
+            </p>
+            {% if recipes %}
+                <div class="mt-4">
+                    <h4 class="text-center" style="margin-bottom: 30px;">추천 레시피</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        {% for recipe in recipes %}
+                            <li style="{% if not forloop.first %}border-top: 1px solid #ccc;{% endif %} margin-bottom: 20px; padding-top: 10px;">
+                                <h3 style="margin-top: 30px; margin-bottom: 15px; font-size: 1.8rem; font-weight: bold; color: #2c3e50; text-align: center; letter-spacing: 0.5px;">
+                                    {{ recipe.title }}
+                                </h3>
+                                {% if recipe.ingredients %}
+                                    <p style="white-space: pre-line; line-height: 1.6;">🧂 재료 : {{ recipe.ingredients }}</p>
+                                {% endif %}
+
+                                <h5>📋 레시피</h5>
+                                <p style="white-space: pre-line; line-height: 1.6;">{{ recipe.description }}</p>
+
+                                {% if recipe.image %}
+                                    <img src="{{ recipe.image.url }}" alt="Recipe Image"
+                                         style="max-width: 400px; height: auto; display: block; margin: 10px auto;">
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p>등록된 레시피가 없습니다.</p>
+            {% endif %}
+
+        </div>
+    </section>
+
+{% endblock %}
