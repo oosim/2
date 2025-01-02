@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+{% load static %}
+{% load socialaccount %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'tap/css/bootstrap.min.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/0ff378b9b7.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .form-signin {
+            max-width: 330px;
+            padding: 15px;
+        }
+        .form-signin img {
+            width: 72px;
+            height: 72px;
+        }
+        .form-signin h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-signin .form-floating {
+            margin-bottom: 10px;
+        }
+        .form-signin .btn {
+            margin-top: 10px;
+        }
+        .form-signin p {
+            margin-top: 15px;
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <main class="form-signin">
+        <form method="post" action="{% provider_login_url 'google' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-block w-100 mb-3">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+        </form>
+            <p class="mt-5 mb-3 text-muted">&copy; 2024</p>
+    </main>
+</body>
+</html>

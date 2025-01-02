@@ -1,0 +1,70 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+  <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'tap:post_list' %}">농산물 목록</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    </ol>
+  </nav>
+
+    <div class="category-header text-center mb-4">
+    {% if category %}
+    <h3>{{ category.name }}</h3> <!-- 선택된 카테고리 이름 표시 -->
+    {% else %}
+    <h3 class="text-secondary">전체 농산물</h3>
+    {% endif %}
+  </div>
+
+<section id="post-list" class="post-list section">
+  <div class="container">
+
+  <!-- 농산물 목록 -->
+  <div class="row">
+    {% for post in posts %}
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="card crop-card">
+        <a href="{% url 'tap:post_detail' post.slug post.pk %}">
+          <img src="{{ post.head_image.url }}" class="card-img-top" alt="{{ post.title }}">
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">{{ post.title }}</h5>
+          <p class="card-text">{{ post.hook_text|truncatewords:15 }}</p>
+          <a href="{% url 'tap:post_detail' slug=post.slug pk=post.pk %}" class="btn btn-primary btn-sm">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center">검색 결과가 없습니다.</p>
+    {% endfor %}
+  </div>
+
+    <!-- 페이지네이션 -->
+    <div class="d-flex justify-content-center mt-4">
+      {% if is_paginated %}
+      <ul class="pagination">
+        {% if posts.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ posts.previous_page_number }}">&laquo;</a>
+        </li>
+        {% endif %}
+        {% for page_num in posts.paginator.page_range %}
+        <li class="page-item {% if posts.number == page_num %}active{% endif %}">
+          <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+        {% if posts.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ posts.next_page_number }}">&raquo;</a>
+        </li>
+        {% endif %}
+      </ul>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

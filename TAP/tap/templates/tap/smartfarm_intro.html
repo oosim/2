@@ -1,0 +1,75 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero section">
+        <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
+            <img src="{% static 'tap/images/farm_01-e1486360862504.jpg' %}" class="img-fluid animated" alt="스마트팜 소개 이미지">
+            <h2><span>스마트팜의 세계로!</span></h2>
+            <p>스마트팜은 농업과 기술이 만나 생산성을 극대화하는 혁신적인 농업 시스템입니다.</p>
+            <div class="d-flex">
+                <a href="#about" class="btn-get-started scrollto">더 알아보기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="about" class="about section">
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <div class="col-lg-6">
+                    <img src="{% static 'tap/images/smartfarm_trend_20200720_01.jpeg' %}" class="img-fluid" alt="스마트팜 이미지">
+                </div>
+                <div class="col-lg-6 pt-4 pt-lg-0">
+                    <h3>스마트팜이란 무엇인가요?</h3>
+                    <p>
+                        스마트팜은 첨단 기술(ICT)을 활용하여 농작물의 생육 환경을 최적화하고, 생산성과 품질을 향상시키는 농업 혁신 시스템입니다.
+                    </p>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> 환경 자동 제어 (온도, 습도, 광량, CO₂)</li>
+                        <li><i class="bi bi-check-circle"></i> 데이터 분석 기반 의사결정</li>
+                        <li><i class="bi bi-check-circle"></i> 자원 절약과 생산성 극대화</li>
+                    </ul>
+                    <p>
+                        농부들은 스마트팜을 통해 더 쉽고 정확하게 농작물을 관리할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features section">
+        <div class="container" data-aos="fade-up">
+            <div class="section-title">
+                <h2>주요 특징</h2>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+                    <div class="icon-box">
+                        <i class="bi bi-thermometer"></i>
+                        <h4>환경 자동 제어</h4>
+                        <p>온도, 습도, 광량, CO₂ 농도를 자동으로 제어합니다.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+                    <div class="icon-box">
+                        <i class="bi bi-graph-up"></i>
+                        <h4>데이터 기반 관리</h4>
+                        <p>데이터를 활용하여 최적의 생육 조건을 분석합니다.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+                    <div class="icon-box">
+                        <i class="bi bi-tree"></i>
+                        <h4>지속 가능한 농업</h4>
+                        <p>자원을 절약하면서 지속 가능한 농업 환경을 구축합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

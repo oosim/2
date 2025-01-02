@@ -1,0 +1,23 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+<section id="manage-farm" enctype="multipart/form-data" class="manage-farm section">
+  <div class="container d-flex flex-column justify-content-center align-items-center text-center">
+    <h2 class="section-title">농가 정보 등록</h2>
+    <p class="section-subtitle">계정당 하나의 농가 정보만 작성할 수 있습니다.</p>
+
+    <div class="card p-4 shadow" style="width: 100%; max-width: 600px;">
+      <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="submit" class="btn btn-primary w-100 mx-2">저장</button>
+          <a href="{% url 'tap:index' %}" class="btn btn-secondary w-100 mx-2">취소</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

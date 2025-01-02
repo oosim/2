@@ -1,0 +1,129 @@
+{% load socialaccount %}
+
+<header id="header" class="header d-flex align-items-center sticky-top" xmlns="http://www.w3.org/1999/html">
+    <div class="container-fluid position-relative d-flex align-items-center justify-content-between">
+
+      <a href="{% url 'tap:index' %}" class="logo d-flex align-items-center me-auto me-xl-0">
+        <!-- Uncomment the line below if you also wish to use an image logo -->
+        <!-- <img src="assets/img/logo.png" alt=""> -->
+        <h1 class="sitename">TAP</h1>
+        <span>.</span>
+      </a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="{% url 'tap:index' %}" class="active">Home<br></a></li>
+            <li><a href="{% url 'tap:smartfarm_intro' %}">스마트팜이란</a></li>
+          <li class="dropdown"><a href="#"><span>지역별 농산물</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+           <ul>
+             {% for region, posts in unique_posts_by_region.items %}
+                  <li class="dropdown">
+                      <a href="#"><span>{{ region.name }}</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                      <ul>
+                          {% for post in posts %}
+                              <li><a href="{% url 'tap:category_list' post.slug %}">{{ post.title }}</a></li>
+                          {% endfor %}
+                      </ul>
+                  </li>
+              {% endfor %}
+           </ul>
+          </li>
+          {% if user.is_authenticated %}
+          <li class="dropdown">
+            <a href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{ user.username }}
+            </a>
+            <ul>
+              {% if user.groups.all.0.name == "농가" or user.is_staff %}
+              <li><a href="{% url 'tap:manage_farm' %}">농가 정보 등록</a></li>
+              <li><a href="{% url 'tap:create_post' %}">농산물 프로필 작성</a></li>
+                <li><a href="{% url 'tap:real_time_chart' %}">실시간 환경 데이터</a></li>
+              {% endif %}
+              <li><a href="{% url 'tap:select_user_type' %}">회원 유형 등록</a></li>
+              <li><a href="/accounts/logout/">Log Out</a></li>
+            </ul>
+<!--            <div class="dropdown-menu" aria-labelledby="navmenu">-->
+<!--              <a class="dropdown-item" href="/accounts/logout/">Log Out</a>-->
+<!--            </div>-->
+          </li>
+          {% else %}
+            <li>
+                <a
+                  role="button"
+                  class="btn btn-google btn-block btn-sm"
+                  href="{% provider_login_url 'google' %}"
+                >
+                  <i class="fab fa-google"></i> &nbsp&nbspLog in with Google
+                </a>
+              </li>
+
+<!--          <li><a role="button" class="btn btn-google btn-block btn-sm" href="/accounts/google/login/"><i class="fab fa-google"></i>&nbsp&nbsp Log in with Google</a></li>-->
+<!--          <li><a role="button" class="btn btn-google btn-block btn-sm" href="{% url 'account_login' %"><i class="fab fa-google"></i>&nbsp&nbsp Log in with Google</a></li>-->
+<!--            <li>{% provider_login_url 'google' %}-->
+<!--    <a role="button" class="btn btn-primary btn-block btn-sm" href="{% url 'account_login' %}">-->
+<!--      <i class="fas fa-envelope"></i>&nbsp;&nbsp; Log in with Email-->
+<!--    </a>-->
+<!--  </li>-->
+
+          {% endif %}
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+<!--        <a role="button" class="btn btn-google btn-block btn-sm" href="{% provider_login_url 'google' %}"><i class="fab fa-google"></i>&nbsp&nbsp Log in with Google</a>-->
+<!--        <button thpe="button" class="btn btn-outline-dark btn-block btn-sm"><i class="far fa-envelope"></i>&nbsp&nbsp Log in with E-mail</button>-->
+      </nav>
+<!-- 🟢 모바일 네비게이션 메뉴 -->
+        <div id="mobile-menu" class="mobile-menu d-xl-none">
+            <ul>
+                <li><a href="{% url 'tap:index' %}">Home</a></li>
+                <li class="dropdown">
+                    <a href="#" class="mobile-dropdown-toggle">
+                        <span>지역별 농산물</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <ul class="submenu">
+                        {% for region, posts in unique_posts_by_region.items %}
+                              <li class="dropdown">
+                                  <a href="#"><span>{{ region.name }}</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                                  <ul>
+                                      {% for post in posts %}
+                                          <li><a href="{% url 'tap:category_list' post.slug %}">{{ post.title }}</a></li>
+                                      {% endfor %}
+                                  </ul>
+                              </li>
+                          {% endfor %}
+                    </ul>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="mobile-dropdown-toggle">
+                        <span>{{ user.username }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <ul class="submenu">
+                        {% if user.groups.all|length > 0 %}
+                            {% for group in user.groups.all %}
+                                {% if group.name == '농가' %}
+                                    <li><a href="{% url 'tap:manage_farm' %}">농가 정보 등록</a></li>
+                                    <li><a href="{% url 'tap:create_post' %}">농산물 프로필 작성</a></li>
+                                    <li><a href="{% url 'tap:select_user_type' %}">회원 유형 선택</a></li>
+                                {% elif group.name == '일반 회원' %}
+                                    <li><a href="{% url 'tap:select_user_type' %}">회원 유형 선택</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <li><a href="/accounts/logout/">Log Out</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <!-- 🟢 모바일: 비로그인 사용자 -->
+                <li>
+                    <a role="button" class="btn btn-google btn-block btn-sm" href="{% provider_login_url 'google' %}">
+                        <i class="fab fa-google"></i>&nbsp; Log in with Google
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    </div>
+  </header>
